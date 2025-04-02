@@ -1,0 +1,30 @@
+<div class="p-4 w-full max-w-md mx-auto">
+  <div class="border border-gray-300 rounded-lg p-4">
+    <div
+      *ngFor="let msg of messages"
+      [ngClass]="{
+        'my-message': msg.userId === currentUserId,
+        'other-message': msg.userId !== currentUserId
+      }"
+    >
+      <strong>{{ msg.userName }}</strong>
+      <p>{{ msg.content }}</p>
+      <span>{{ msg.timestamp | date : "shortTime" }}</span>
+    </div>
+
+    <div class="flex mt-4">
+      <input
+        type="text"
+        [(ngModel)]="message"
+        placeholder="Type a message..."
+        class="flex-grow p-2 border border-gray-300 rounded"
+      />
+      <button
+        (click)="sendMessage()"
+        class="ml-2 px-4 py-2 bg-blue-500 text-white rounded"
+      >
+        Send
+      </button>
+    </div>
+  </div>
+</div>
