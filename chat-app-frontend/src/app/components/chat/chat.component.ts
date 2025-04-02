@@ -6,24 +6,25 @@ import {
   PLATFORM_ID,
   ViewChild,
   ElementRef,
+  HostListener,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { io, Socket } from 'socket.io-client';
-import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
 import { ChatMessage } from '../../chat-message.model';
-import { v4 as uuidv4 } from 'uuid';
 import { ImportsModule } from '../imports';
+import { PickerComponent } from '@ctrl/ngx-emoji-mart';
 
 @Component({
   selector: 'app-chat',
   // Removed invalid 'imports' property
-  imports: [ImportsModule],
+  imports: [ImportsModule, PickerComponent],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
 })
 export class ChatComponent implements OnInit {
   @ViewChild('chatContainer') private chatContainer!: ElementRef;
+  @ViewChild('emojiPicker') emojiPickerRef!: ElementRef;
+  @ViewChild('emojiButton') emojiButtonRef!: ElementRef;
   private socket!: Socket;
   message = '';
   messages: ChatMessage[] = [];
@@ -32,8 +33,13 @@ export class ChatComponent implements OnInit {
   isTyping = false;
   typingTimeout: any;
   typingUser: string | null = null;
+  showEmojiPicker = false;
+  isDarkMode = false; // Dark mode support
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private eRef: ElementRef
+  ) {
     this.currentUserId = this.getOrCreateUserId();
     this.currentUserName = `User-${this.currentUserId.substring(0, 5)}`;
     this.promptForUserName();
@@ -83,6 +89,36 @@ export class ChatComponent implements OnInit {
     this.messages.push(newMessage);
     this.scrollToBottom();
   }
+
+  @HostListener('document:click', ['$event'])
+  clickOutside(event: Event) {
+    if (
+      this.showEmojiPicker &&
+      this.emojiPickerRef &&
+      this.emojiButtonRef &&
+      !this.emojiPickerRef.nativeElement.contains(event.target) &&
+      !this.emojiButtonRef.nativeElement.contains(event.target)
+    ) {
+      this.showEmojiPicker = false;
+    }
+  }
+
+  toggleEmojiPicker() {
+    this.showEmojiPicker = !this.showEmojiPicker;
+  }
+
+  addEmoji(event: any) {
+    this.message += event.emoji.native;
+    this.showEmojiPicker = false;
+  }
+
+  // Close picker when clicking outside
+  // @HostListener('document:click', ['$event'])
+  // clickOutside(event: Event) {
+  //   if (!this.eRef.nativeElement.contains(event.target)) {
+  //     this.showEmojiPicker = false;
+  //   }
+  // }
 
   private promptForUserName(): void {
     const storedUserName = localStorage.getItem('userName');
