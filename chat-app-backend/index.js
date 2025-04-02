@@ -30,6 +30,15 @@ io.on("connection", (socket) => {
     io.emit("receiveMessage", data);
   });
 
+  // ✅ Fix: Broadcast typing event to others (NOT the sender)
+  socket.on("userTyping", (userName) => {
+    socket.broadcast.emit("userTyping", userName); // ✅ Broadcast to others only
+  });
+
+  socket.on("stopTyping", (userName) => {
+    socket.broadcast.emit("stopTyping", userName);
+  });
+
   socket.on("disconnect", () => {
     console.log("User disconnected");
   });
