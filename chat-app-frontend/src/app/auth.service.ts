@@ -1,6 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 
@@ -33,19 +34,22 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
-  login(email: string, password: string) {
+  // ✅ Fixing Login: Returning Observable instead of subscribing inside service
+  login(email: string, password: string): Observable<any> {
     return this.http
       .post<any>(`${this.apiUrl}/login`, { email, password })
-      .subscribe((response) => {
-        if (isPlatformBrowser(this.platformId)) {
-          localStorage.setItem('currentUser', JSON.stringify(response));
-        }
-        this.currentUserSubject.next(response);
-        this.router.navigate(['/chat']);
-      });
+      .pipe(
+        tap((response) => {
+          if (isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('currentUser', JSON.stringify(response));
+          }
+          this.currentUserSubject.next(response);
+        })
+      );
   }
 
-  register(username: string, email: string, password: string) {
+  // ✅ Register: No need to change
+  register(username: string, email: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/register`, {
       username,
       email,
@@ -53,6 +57,7 @@ export class AuthService {
     });
   }
 
+  // ✅ Logout: Works fine
   logout() {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('currentUser');

@@ -6,3 +6,20 @@
   background-color: #ffffff;
   text-align: left;
 }
+.dot-flashing {
+  width: 6px;
+  height: 6px;
+  background-color: #555;
+  border-radius: 50%;
+  animation: dotFlashing 1s infinite linear alternate;
+  margin-left: 4px;
+}
+
+@keyframes dotFlashing {
+  0% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 1;
+  }
+}
