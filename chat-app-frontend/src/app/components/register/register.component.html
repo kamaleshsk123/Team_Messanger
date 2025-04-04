@@ -7,6 +7,37 @@
     (ngSubmit)="onSubmit()"
     class="max-w-sm w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6"
   >
+    <!-- Profile Image Upload -->
+    <div class="relative flex justify-center mb-5">
+      <label for="imageUpload" class="relative cursor-pointer">
+        <input
+          type="file"
+          id="imageUpload"
+          accept="image/*"
+          (change)="onImageSelected($event)"
+          class="hidden"
+        />
+        <div
+          class="w-24 h-24 rounded-full border border-gray-300 dark:border-gray-600 overflow-hidden flex items-center justify-center bg-gray-200 dark:bg-gray-700"
+        >
+          <img
+            *ngIf="imagePreview"
+            [src]="imagePreview"
+            alt="Profile Image"
+            class="w-full h-full object-cover"
+          />
+          <mat-icon *ngIf="!imagePreview" class="text-gray-500 text-5xl"
+            >person</mat-icon
+          >
+        </div>
+        <div
+          class="absolute bottom-0 right-0 text-white font-bold flex justify-center items-center bg-blue-600 rounded-full p-1 shadow-lg"
+        >
+          <mat-icon class="text-lg">add</mat-icon>
+        </div>
+      </label>
+    </div>
+
     <div class="mb-5">
       <label
         for="username"
@@ -50,7 +81,6 @@
       >
         Your password
       </label>
-
       <div class="relative">
         <input
           [type]="showPassword ? 'text' : 'password'"
@@ -62,7 +92,6 @@
           (input)="checkPasswordStrength()"
           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
         />
-
         <button
           type="button"
           (click)="togglePasswordVisibility()"
@@ -90,7 +119,6 @@
           [style.width.%]="passwordStrength"
         ></div>
       </div>
-
       <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">
         Use 8+ characters with a mix of letters, numbers & symbols.
       </p>
@@ -107,8 +135,9 @@
       <label
         for="remember"
         class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-        >Remember me</label
       >
+        Remember me
+      </label>
     </div>
 
     <button

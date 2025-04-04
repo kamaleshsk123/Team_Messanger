@@ -58,11 +58,17 @@ export class AuthService {
   }
 
   // ✅ Register: No need to change
-  register(username: string, email: string, password: string): Observable<any> {
+  register(
+    username: string,
+    email: string,
+    password: string,
+    imageUrl: string | null
+  ) {
     return this.http.post<any>(`${this.apiUrl}/register`, {
       username,
       email,
       password,
+      profileImage: imageUrl, // Send profile image URL
     });
   }
 

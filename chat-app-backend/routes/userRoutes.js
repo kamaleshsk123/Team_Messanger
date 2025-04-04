@@ -10,14 +10,15 @@ const userSchema = Joi.object({
   username: Joi.string().required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
+  profileImage: Joi.string().uri().optional(), // ✅ Allow profileImage (URL format)
 });
 
 // Register route
 // Register route
 router.post("/register", async (req, res, next) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, profileImage } = req.body; // Accept profileImage
   try {
-    // Validate the request body
+    // Validate input
     await userSchema.validateAsync(req.body);
 
     // Check if the user already exists
@@ -27,17 +28,22 @@ router.post("/register", async (req, res, next) => {
 
     // Hash the password and create a new user
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, email, password: hashedPassword });
+    const newUser = new User({
+      username,
+      email,
+      password: hashedPassword,
+      profileImage: profileImage || "", // Save image URL (default: empty string)
+    });
     await newUser.save();
 
-    // Send the success response
     res.status(201).json({
       message: "User registered successfully",
-      userId: newUser.userId,
+      userId: newUser._id,
+      profileImage: newUser.profileImage,
     });
   } catch (err) {
-    console.error("Error during registration:", err); // Log the error
-    next(err); // Pass the error to the next middleware
+    console.error("Error during registration:", err);
+    next(err);
   }
 });
 
@@ -66,12 +72,39 @@ router.get("/me", authenticateUser, async (req, res) => {
     const user = await User.findById(req.user.userId).select("-password"); // Exclude password
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    res.json(user);
+    res.json({
+      username: user.username,
+      email: user.email,
+      profileImage: user.profileImage, // Include profile image
+    });
   } catch (error) {
     console.error("Error fetching user details:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+router.put("/update-profile-image", authenticateUser, async (req, res) => {
+  const { profileImage } = req.body; // New image URL
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      { profileImage },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({
+      message: "Profile image updated",
+      profileImage: user.profileImage,
+    });
+  } catch (error) {
+    console.error("Error updating profile image:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // Login route
 router.post("/login", async (req, res, next) => {
   const { identifier, password } = req.body; // Accepts both email and username

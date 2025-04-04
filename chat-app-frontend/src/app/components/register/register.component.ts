@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { Toast } from 'primeng/toast';
 import { ImportsModule } from '../imports';
+import { ImageUploadService } from '../../service/image-upload.service';
 @Component({
   selector: 'app-register',
   imports: [Toast, ImportsModule],
@@ -18,27 +19,52 @@ export class RegisterComponent {
   showPassword: boolean = false;
   passwordStrength: number = 0;
   passwordStrengthColor: string = 'bg-gray-300'; // Default color
+  imagePreview: string | ArrayBuffer | null = null;
+  selectedFile: File | null = null;
 
   constructor(
     private authService: AuthService,
     private router: Router,
-    private messageService: MessageService // ✅ Use PrimeNG Toast Service
+    private messageService: MessageService, // ✅ Use PrimeNG Toast Service
+    private imageUploadService: ImageUploadService
   ) {}
 
   onSubmit() {
+    if (this.selectedFile) {
+      this.imageUploadService
+        .uploadImage(this.selectedFile, this.username)
+        .subscribe({
+          next: (response) => {
+            console.log('Image uploaded:', response.secure_url);
+            this.registerUser(response.secure_url); // Register with Cloudinary URL
+          },
+          error: (err) => {
+            console.error('Image upload failed', err);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Image Upload Failed',
+              detail: 'Please try again!',
+            });
+          },
+        });
+    } else {
+      this.registerUser(null); // Register without image
+    }
+  }
+  registerUser(imageUrl: string | null) {
     this.authService
-      .register(this.username, this.email, this.password)
+      .register(this.username, this.email, this.password, imageUrl)
       .subscribe({
         next: () => {
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
             detail: 'User registered successfully!',
-          }); // ✅ Show success toast
+          });
 
           setTimeout(() => {
-            this.router.navigate(['/login']); // Redirect to login
-          }, 2000); // Delay navigation to show toast
+            this.router.navigate(['/login']);
+          }, 2000);
         },
         error: (err) => {
           console.error('Registration error', err);
@@ -46,7 +72,7 @@ export class RegisterComponent {
             severity: 'error',
             summary: 'Error',
             detail: err.error.message || 'Registration failed',
-          }); // ❌ Show error toast
+          });
         },
       });
   }
@@ -76,5 +102,17 @@ export class RegisterComponent {
     if (/[0-9]/.test(password)) strength += 20;
     if (/[\W]/.test(password)) strength += 30;
     return strength;
+  }
+
+  onImageSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreview = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
   }
 }
