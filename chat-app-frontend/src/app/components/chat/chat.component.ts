@@ -13,6 +13,7 @@ import { io, Socket } from 'socket.io-client';
 import { ChatMessage } from '../../chat-message.model';
 import { ImportsModule } from '../imports';
 import { PickerComponent } from '@ctrl/ngx-emoji-mart';
+import { AuthService } from '../../auth.service';
 
 @Component({
   selector: 'app-chat',
@@ -35,10 +36,13 @@ export class ChatComponent implements OnInit {
   typingUser: string | null = null;
   showEmojiPicker = false;
   isDarkMode = false; // Dark mode support
+  user: any;
+  isSending = false;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
-    private eRef: ElementRef
+    private eRef: ElementRef,
+    private authService: AuthService
   ) {
     this.currentUserId = this.getOrCreateUserId();
     this.currentUserName = `User-${this.currentUserId.substring(0, 5)}`;
@@ -56,33 +60,57 @@ export class ChatComponent implements OnInit {
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.socket = io('http://localhost:5000');
-
-      this.socket.emit('userConnected', {
-        userId: this.currentUserId,
-        userName: this.currentUserName,
-      });
-
-      this.socket.on('receiveMessage', (msg: ChatMessage) => {
-        this.messages.push(msg);
-        this.scrollToBottom();
-      });
-
-      // Listen for typing events
-      this.socket.on('userTyping', (userName: string) => {
-        if (userName !== this.currentUserName) {
-          this.typingUser = userName;
-          this.isTyping = true;
-        }
-      });
-
-      this.socket.on('stopTyping', (userName: string) => {
-        if (userName !== this.currentUserName) {
-          this.typingUser = null;
-          this.isTyping = false;
-        }
-      });
+      this.fetchUserDetails(); // ✅ Fetch user details from API
     }
+  }
+
+  private fetchUserDetails() {
+    this.authService.getUserDetails().subscribe({
+      next: (response) => {
+        this.user = response;
+        this.currentUserId = this.user.userId;
+        this.currentUserName = this.user.username;
+        localStorage.setItem('userId', this.currentUserId);
+        localStorage.setItem('userName', this.currentUserName);
+
+        console.log('User Details:', this.user);
+
+        // ✅ Initialize WebSocket connection after fetching user details
+        this.initializeSocket();
+      },
+      error: (err) => {
+        console.error('Error fetching user details:', err);
+      },
+    });
+  }
+
+  private initializeSocket() {
+    this.socket = io('http://localhost:5000');
+
+    this.socket.emit('userConnected', {
+      userId: this.currentUserId,
+      userName: this.currentUserName,
+    });
+
+    this.socket.on('receiveMessage', (msg: ChatMessage) => {
+      this.messages.push(msg);
+      this.scrollToBottom();
+    });
+
+    // Listen for typing events
+    this.socket.on('userTyping', (userName: string) => {
+      if (userName !== this.currentUserName) {
+        this.typingUser = userName;
+        this.isTyping = true;
+      }
+    });
+
+    this.socket.on('stopTyping', (userName: string) => {
+      if (userName !== this.currentUserName) {
+        this.typingUser = null;
+        this.isTyping = false;
+      }
+    });
   }
 
   addMessage(newMessage: ChatMessage) {
@@ -157,7 +185,9 @@ export class ChatComponent implements OnInit {
         content: this.message,
         timestamp: new Date(),
       };
-      this.socket.emit('sendMessage', newMessage);
+      this.socket.emit('sendMessage', newMessage, () => {
+        this.isSending = false; // Reset loading state after sending
+      });
       this.message = '';
       this.isTyping = true;
       this.socket.emit('stopTyping', this.currentUserName);

@@ -105,6 +105,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { DrawerModule } from 'primeng/drawer';
 import { ThemeSwitcher } from './themeswitcher';
 import { MatIconModule } from '@angular/material/icon';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 
 @NgModule({
   imports: [
@@ -213,6 +214,7 @@ import { MatIconModule } from '@angular/material/icon';
     InputIconModule,
     AutoFocusModule,
     OverlayBadgeModule,
+    MatProgressSpinnerModule,
   ],
   exports: [
     ThemeSwitcher,
@@ -321,6 +323,7 @@ import { MatIconModule } from '@angular/material/icon';
     InputIconModule,
     AutoFocusModule,
     OverlayBadgeModule,
+    MatProgressSpinnerModule,
   ],
   providers: [],
 })

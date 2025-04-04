@@ -34,10 +34,19 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
+  getUserDetails(): Observable<any> {
+    const token = localStorage.getItem('currentUser')
+      ? JSON.parse(localStorage.getItem('currentUser') || '{}').token
+      : null;
+    return this.http.get<any>(`${this.apiUrl}/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
   // ✅ Fixing Login: Returning Observable instead of subscribing inside service
-  login(email: string, password: string): Observable<any> {
+  login(identifier: string, password: string): Observable<any> {
     return this.http
-      .post<any>(`${this.apiUrl}/login`, { email, password })
+      .post<any>(`${this.apiUrl}/login`, { identifier, password }) // Send identifier instead of email
       .pipe(
         tap((response) => {
           if (isPlatformBrowser(this.platformId)) {

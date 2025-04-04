@@ -1,3 +1,8 @@
+<div *ngIf="user">
+  <h2>Welcome, {{ user.username }}</h2>
+  <p>Email: {{ user.email }}</p>
+</div>
+
 <div
   class="fixed inset-0 flex flex-col border border-gray-300 bg-gradient-to-b from-gray-100 to-white shadow-lg"
 >
@@ -88,9 +93,19 @@
     <!-- Send Button -->
     <button
       type="submit"
-      class="p-2 text-blue-600 hover:bg-blue-100 rounded-full"
+      class="relative p-2 px-3 text-center items-center justify-center flex text-white bg-blue-600 rounded-full hover:bg-blue-700 active:scale-95 transition-all duration-200"
+      [disabled]="!message.trim() || isSending"
+      matTooltip="Send Message"
+      aria-label="Send Message"
+      (click)="sendMessage()"
     >
-      <mat-icon>send</mat-icon>
+      <mat-icon *ngIf="!isSending">send</mat-icon>
+      <mat-progress-spinner
+        *ngIf="isSending"
+        diameter="20"
+        mode="indeterminate"
+        color="white"
+      ></mat-progress-spinner>
     </button>
   </form>
 </div>

@@ -18,6 +18,7 @@ export class LoginComponent {
   email: string = '';
   password: string = '';
   showPassword: boolean = false;
+  identifier: string = '';
 
   constructor(
     private authService: AuthService,
@@ -27,7 +28,7 @@ export class LoginComponent {
   ) {}
 
   onSubmit() {
-    this.authService.login(this.email, this.password).subscribe({
+    this.authService.login(this.identifier, this.password).subscribe({
       next: (response) => {
         this.messageService.add({
           severity: 'success',
@@ -35,9 +36,8 @@ export class LoginComponent {
           detail: 'User login successfully!',
         }); // ✅ Show success toast
         setTimeout(() => {
-          this.router.navigate(['/chat']); // Redirect to login
+          this.router.navigate(['/chat']); // Redirect to chat
         }, 500); // Delay navigation to show toast
-        // Redirect to chat
       },
       error: (err) => {
         console.error('Login error', err);
@@ -49,6 +49,7 @@ export class LoginComponent {
       },
     });
   }
+
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
   }
