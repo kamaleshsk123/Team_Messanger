@@ -100,7 +100,7 @@ export class AuthService {
             localStorage.removeItem('token'); // Still safe to remove if it was ever used
           }
           this.currentUserSubject.next(null);
-          this.router.navigate(['/login']);
+          // this.router.navigate(['/login']);
         }),
         catchError((error) => {
           console.error('Logout failed:', error);
