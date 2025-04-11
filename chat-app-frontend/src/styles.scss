@@ -3,8 +3,8 @@
 @tailwind components;
 @tailwind utilities;
 @import "primeicons/primeicons.css";
-@plugin "flowbite/plugin";
-@source "../node_modules/flowbite";
+
+@import "@ctrl/ngx-emoji-mart/picker";
 
 html,
 body {

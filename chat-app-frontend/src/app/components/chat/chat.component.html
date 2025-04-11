@@ -1,78 +1,114 @@
-<div
-  class="w-full max-w-lg mx-auto h-[500px] flex flex-col border border-gray-300 rounded-lg bg-gradient-to-b from-gray-100 to-white shadow-lg"
->
-  <!-- Messages Container -->
-  <!-- Messages Container (Reverse Order) -->
+<div class="flex h-screen bg-gray-100">
+  <!-- Sidebar (SideNavComponent) -->
+  <app-sidenav class="h-full"></app-sidenav>
+
+  <!-- Main Chat Container -->
   <div
-    #chatContainer
-    class="flex-grow overflow-y-auto p-4 flex flex-col-reverse space-y-3 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
+    class="flex flex-col flex-grow border border-gray-300 bg-gradient-to-b from-gray-100 to-white shadow-lg"
   >
+    <!-- Messages Container (Reverse Order) -->
     <div
-      *ngFor="let msg of messages.slice().reverse(); let i = index"
-      [ngClass]="{
-        'self-end bg-blue-500 text-white': msg.userId === currentUserId,
-        'self-start bg-gray-200 text-black': msg.userId !== currentUserId
-      }"
-      class="relative flex items-start space-x-2 max-w-xs p-3 rounded-lg shadow-md transition-all duration-300 animate-fade-in"
-      [style.animationDelay]="i * 50 + 'ms'"
+      #chatContainer
+      class="flex-grow overflow-y-auto p-4 flex flex-col-reverse space-y-3 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
     >
-      <div>
-        <strong class="block text-sm">{{ msg.userName }}</strong>
-        <p class="text-sm">{{ msg.content }}</p>
-        <span class="text-xs opacity-70 block mt-1">{{
-          msg.timestamp | date : "shortTime"
-        }}</span>
+      <div
+        *ngFor="let msg of messages.slice().reverse(); let i = index"
+        [ngClass]="{
+          'self-end bg-blue-500 text-white': msg.userId === currentUserId,
+          'self-start bg-gray-200 text-black': msg.userId !== currentUserId
+        }"
+        class="relative flex items-start space-x-2 max-w-xs p-3 rounded-lg shadow-md transition-all duration-300 animate-fade-in"
+        [style.animationDelay]="i * 50 + 'ms'"
+      >
+        <div>
+          <strong class="block text-sm">{{ msg.userName }}</strong>
+          <p class="text-sm">{{ msg.content }}</p>
+          <span class="text-xs opacity-70 block mt-1">{{
+            msg.timestamp | date : "shortTime"
+          }}</span>
+        </div>
       </div>
     </div>
+
+    <!-- Typing Indicator -->
+    <div
+      *ngIf="isTyping && typingUser !== currentUserName"
+      class="p-2 self-start bg-gray-200 text-black px-3 py-2 rounded-lg shadow-md max-w-xs flex items-center space-x-2"
+    >
+      <span class="text-sm">{{ typingUser }} is typing...</span>
+      <div class="dot-flashing"></div>
+    </div>
+
+    <!-- Emoji Picker -->
+    <div
+      #emojiPicker
+      *ngIf="showEmojiPicker"
+      class="absolute bottom-20 left-3 bg-white border border-gray-300 rounded-lg shadow-lg z-50"
+    >
+      <emoji-mart
+        [set]="'facebook'"
+        [emojiSize]="24"
+        [perLine]="7"
+        [skin]="1"
+        color="#2563eb"
+        [title]="'Pick an emoji!'"
+        [showPreview]="false"
+        (emojiSelect)="addEmoji($event)"
+      >
+      </emoji-mart>
+    </div>
+
+    <!-- Input Form -->
+    <form
+      (ngSubmit)="sendMessage()"
+      class="p-3 border-t border-gray-300 bg-gray-50 dark:bg-gray-700 flex items-center"
+    >
+      <!-- Upload Button -->
+      <button
+        type="button"
+        class="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+      >
+        <mat-icon>attach_file</mat-icon>
+      </button>
+
+      <!-- Emoji Button -->
+      <button
+        #emojiButton
+        type="button"
+        class="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+        (click)="toggleEmojiPicker()"
+      >
+        <mat-icon>sentiment_satisfied</mat-icon>
+      </button>
+
+      <!-- Message Input -->
+      <textarea
+        id="chat"
+        rows="1"
+        [(ngModel)]="message"
+        name="message"
+        class="block mx-4 p-2.5 w-full text-sm text-gray-900 bg-white rounded-full border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"
+        placeholder="Type your message..."
+        (input)="typing()"
+      ></textarea>
+
+      <!-- Send Button -->
+      <button
+        type="submit"
+        class="relative p-2 px-3 text-center items-center justify-center flex text-white bg-blue-600 rounded-full hover:bg-blue-700 active:scale-95 transition-all duration-200"
+        [disabled]="!message.trim() || isSending"
+        matTooltip="Send Message"
+        aria-label="Send Message"
+        (click)="sendMessage()"
+      >
+        <mat-icon *ngIf="!isSending">send</mat-icon>
+        <mat-progress-spinner
+          *ngIf="isSending"
+          diameter="20"
+          mode="indeterminate"
+          color="white"
+        ></mat-progress-spinner>
+      </button>
+    </form>
   </div>
-
-  <!-- Typing Indicator (Placed BELOW Message Container) -->
-  <div
-    *ngIf="isTyping && typingUser !== currentUserName"
-    class="p-2 self-start bg-gray-200 text-black px-3 py-2 rounded-lg shadow-md max-w-xs flex items-center space-x-2"
-  >
-    <span class="text-sm">{{ typingUser }} is typing...</span>
-    <div class="dot-flashing"></div>
-  </div>
-
-  <!-- Input Form at Bottom -->
-  <form
-    (ngSubmit)="sendMessage()"
-    class="p-3 border-t border-gray-300 bg-gray-50 dark:bg-gray-700 flex items-center"
-  >
-    <!-- Upload Button -->
-    <button
-      type="button"
-      class="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-    >
-      <mat-icon>attach_file</mat-icon>
-    </button>
-
-    <!-- Emoji Button -->
-    <button
-      type="button"
-      class="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-    >
-      <mat-icon>sentiment_satisfied</mat-icon>
-    </button>
-
-    <!-- Message Input -->
-    <textarea
-      id="chat"
-      rows="1"
-      [(ngModel)]="message"
-      name="message"
-      class="block mx-4 p-2.5 w-full text-sm text-gray-900 bg-white rounded-full border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"
-      placeholder="Type your message..."
-      (input)="typing()"
-    ></textarea>
-
-    <!-- Send Button -->
-    <button
-      type="submit"
-      class="p-2 text-blue-600 hover:bg-blue-100 rounded-full"
-    >
-      <mat-icon>send</mat-icon>
-    </button>
-  </form>
 </div>

@@ -1,128 +1,159 @@
 <p-toast></p-toast>
 
-<form (ngSubmit)="onSubmit()" class="max-w-sm mx-auto">
-  <div class="mb-5">
-    <label
-      for="username"
-      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-      >Username</label
-    >
-    <input
-      type="text"
-      id="username"
-      [(ngModel)]="username"
-      name="username"
-      required
-      placeholder="Enter your username"
-      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-    />
-  </div>
-
-  <div class="mb-5">
-    <label
-      for="email"
-      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-      >Your email</label
-    >
-    <input
-      type="email"
-      id="email"
-      [(ngModel)]="email"
-      name="email"
-      required
-      placeholder="name@yourmail.com"
-      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-    />
-  </div>
-
-  <div class="mb-5 relative">
-    <label
-      for="password"
-      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-    >
-      Your password
-    </label>
-
-    <!-- Password Input -->
-    <div class="relative">
-      <input
-        [type]="showPassword ? 'text' : 'password'"
-        id="password"
-        [(ngModel)]="password"
-        name="password"
-        required
-        placeholder="Enter your password"
-        (input)="checkPasswordStrength()"
-        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-      />
-
-      <!-- Show/Hide Password Button -->
-      <button
-        type="button"
-        (click)="togglePasswordVisibility()"
-        class="absolute inset-y-0 mt-1 right-2 flex items-center px-2"
-      >
-        <mat-icon
-          *ngIf="!showPassword"
-          class="text-gray-500 text-sm"
-          style="font-size: 18px"
-        >
-          visibility
-        </mat-icon>
-        <mat-icon
-          *ngIf="showPassword"
-          class="text-gray-500 text-sm"
-          style="font-size: 18px"
-        >
-          visibility_off
-        </mat-icon>
-      </button>
-    </div>
-
-    <!-- Password Strength Bar -->
-    <div class="mt-2 h-2 w-full rounded bg-gray-300">
-      <div
-        [class]="passwordStrengthColor"
-        class="h-2 rounded transition-all"
-        [style.width.%]="passwordStrength"
-      ></div>
-    </div>
-
-    <!-- Password Rules Tooltip -->
-    <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">
-      Use 8+ characters with a mix of letters, numbers & symbols.
-    </p>
-  </div>
-
-  <div class="flex items-start mb-5">
-    <div class="flex items-center h-5">
-      <input
-        id="remember"
-        type="checkbox"
-        class="w-4 h-4 border border-gray-300 rounded-sm bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800"
-      />
-    </div>
-    <label
-      for="remember"
-      class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-      >Remember me</label
-    >
-  </div>
-
-  <button
-    type="submit"
-    class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+<div
+  class="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900"
+>
+  <form
+    (ngSubmit)="onSubmit()"
+    class="max-w-sm w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6"
   >
-    Register
-  </button>
+    <!-- Profile Image Upload -->
+    <div class="relative flex justify-center mb-5">
+      <label for="imageUpload" class="relative cursor-pointer">
+        <input
+          type="file"
+          id="imageUpload"
+          accept="image/*"
+          (change)="onImageSelected($event)"
+          class="hidden"
+        />
+        <div
+          class="w-24 h-24 rounded-full border border-gray-300 dark:border-gray-600 overflow-hidden flex items-center justify-center bg-gray-200 dark:bg-gray-700"
+        >
+          <img
+            *ngIf="imagePreview"
+            [src]="imagePreview"
+            alt="Profile Image"
+            class="w-full h-full object-cover"
+          />
+          <mat-icon *ngIf="!imagePreview" class="text-gray-500 text-5xl"
+            >person</mat-icon
+          >
+        </div>
+        <div
+          class="absolute bottom-0 right-0 text-white font-bold flex justify-center items-center bg-blue-600 rounded-full p-1 shadow-lg"
+        >
+          <mat-icon class="text-lg">add</mat-icon>
+        </div>
+      </label>
+    </div>
 
-  <!-- Already have an account? Login -->
-  <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">
-    Already have an account?
-    <a
-      href="/login"
-      class="text-blue-600 cursor-pointer hover:underline dark:text-blue-400"
-      >Login</a
+    <div class="mb-5">
+      <label
+        for="username"
+        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >
+        Username
+      </label>
+      <input
+        type="text"
+        id="username"
+        [(ngModel)]="username"
+        name="username"
+        required
+        placeholder="Enter your username"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+      />
+    </div>
+
+    <div class="mb-5">
+      <label
+        for="email"
+        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >
+        Your email
+      </label>
+      <input
+        type="email"
+        id="email"
+        [(ngModel)]="email"
+        name="email"
+        required
+        placeholder="name@yourmail.com"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+      />
+    </div>
+
+    <div class="mb-5 relative">
+      <label
+        for="password"
+        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >
+        Your password
+      </label>
+      <div class="relative">
+        <input
+          [type]="showPassword ? 'text' : 'password'"
+          id="password"
+          [(ngModel)]="password"
+          name="password"
+          required
+          placeholder="Enter your password"
+          (input)="checkPasswordStrength()"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        />
+        <button
+          type="button"
+          (click)="togglePasswordVisibility()"
+          class="absolute inset-y-0 mt-1 right-2 flex items-center px-2"
+        >
+          <mat-icon
+            *ngIf="!showPassword"
+            class="text-gray-500 text-sm"
+            style="font-size: 18px"
+            >visibility</mat-icon
+          >
+          <mat-icon
+            *ngIf="showPassword"
+            class="text-gray-500 text-sm"
+            style="font-size: 18px"
+            >visibility_off</mat-icon
+          >
+        </button>
+      </div>
+
+      <div class="mt-2 h-2 w-full rounded bg-gray-300">
+        <div
+          [class]="passwordStrengthColor"
+          class="h-2 rounded transition-all"
+          [style.width.%]="passwordStrength"
+        ></div>
+      </div>
+      <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">
+        Use 8+ characters with a mix of letters, numbers & symbols.
+      </p>
+    </div>
+
+    <div class="flex items-start mb-5">
+      <div class="flex items-center h-5">
+        <input
+          id="remember"
+          type="checkbox"
+          class="w-4 h-4 border border-gray-300 rounded-sm bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800"
+        />
+      </div>
+      <label
+        for="remember"
+        class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+      >
+        Remember me
+      </label>
+    </div>
+
+    <button
+      type="submit"
+      class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
     >
-  </p>
-</form>
+      Register
+    </button>
+
+    <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">
+      Already have an account?
+      <a
+        href="/login"
+        class="text-blue-600 cursor-pointer hover:underline dark:text-blue-400"
+        >Login</a
+      >
+    </p>
+  </form>
+</div>
