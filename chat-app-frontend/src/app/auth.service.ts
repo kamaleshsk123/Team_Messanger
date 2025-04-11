@@ -1,7 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 
@@ -21,6 +21,7 @@ export class AuthService {
     // Initialize currentUserSubject based on the platform
     if (isPlatformBrowser(this.platformId)) {
       const storedUser = localStorage.getItem('currentUser');
+      console.log('localStorage :', localStorage.getItem('currentUser'));
       this.currentUserSubject = new BehaviorSubject<any>(
         storedUser ? JSON.parse(storedUser) : null
       );
@@ -39,6 +40,16 @@ export class AuthService {
       ? JSON.parse(localStorage.getItem('currentUser') || '{}').token
       : null;
     return this.http.get<any>(`${this.apiUrl}/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  getOnlineUsers(): Observable<any> {
+    const token = localStorage.getItem('currentUser')
+      ? JSON.parse(localStorage.getItem('currentUser') || '{}').token
+      : null;
+
+    return this.http.get<any>(`${this.apiUrl}/online-users`, {
       headers: { Authorization: `Bearer ${token}` },
     });
   }
@@ -73,11 +84,28 @@ export class AuthService {
   }
 
   // ✅ Logout: Works fine
-  logout() {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem('currentUser');
-    }
-    this.currentUserSubject.next(null);
-    this.router.navigate(['/login']);
+  logout(): Observable<any> {
+    const token = localStorage.getItem('currentUser')
+      ? JSON.parse(localStorage.getItem('currentUser') || '{}').token
+      : null;
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    return this.http
+      .post(`${this.apiUrl}/logout`, {}, { headers, withCredentials: true })
+      .pipe(
+        tap(() => {
+          if (isPlatformBrowser(this.platformId)) {
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('token'); // Still safe to remove if it was ever used
+          }
+          this.currentUserSubject.next(null);
+          this.router.navigate(['/login']);
+        }),
+        catchError((error) => {
+          console.error('Logout failed:', error);
+          return throwError(() => error);
+        })
+      );
   }
 }

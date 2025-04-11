@@ -14,11 +14,12 @@ import { ChatMessage } from '../../chat-message.model';
 import { ImportsModule } from '../imports';
 import { PickerComponent } from '@ctrl/ngx-emoji-mart';
 import { AuthService } from '../../auth.service';
+import { SidenavComponent } from '../sidenav/sidenav.component';
 
 @Component({
   selector: 'app-chat',
   // Removed invalid 'imports' property
-  imports: [ImportsModule, PickerComponent],
+  imports: [ImportsModule, PickerComponent, SidenavComponent],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
 })

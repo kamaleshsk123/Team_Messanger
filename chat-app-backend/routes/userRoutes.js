@@ -73,6 +73,7 @@ router.get("/me", authenticateUser, async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({
+      userId: user.userId, // Include userId
       username: user.username,
       email: user.email,
       profileImage: user.profileImage, // Include profile image
@@ -107,22 +108,22 @@ router.put("/update-profile-image", authenticateUser, async (req, res) => {
 
 // Login route
 router.post("/login", async (req, res, next) => {
-  const { identifier, password } = req.body; // Accepts both email and username
-
+  const { identifier, password } = req.body;
   try {
-    // Find the user by email or username
     const user = await User.findOne({
       $or: [{ email: identifier }, { username: identifier }],
     });
 
     if (!user) return res.status(400).json({ message: "User not found" });
 
-    // Check if the password matches
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
 
-    // Generate a token
+    // Set user as online
+    user.isOnline = true;
+    await user.save();
+
     const token = jwt.sign(
       { userId: user._id },
       "662e75eafd0f160fe7fb35703b01f6af16ac8e603f3ad0692c1e9fc39737f9da",
@@ -134,7 +135,34 @@ router.post("/login", async (req, res, next) => {
     res.json({ token, user });
   } catch (err) {
     console.error("Error during login:", err);
-    next(err); // Pass the error to the next middleware
+    next(err);
+  }
+});
+
+router.post("/logout", authenticateUser, async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.user.userId, {
+      isOnline: false,
+    });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Error logging out:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.get("/online-users", authenticateUser, async (req, res) => {
+  try {
+    const onlineUsers = await User.find({
+      isOnline: true,
+      _id: { $ne: req.user.userId }, // Exclude the current user
+    }).select("username email profileImage");
+    res.json({ onlineUsers });
+  } catch (error) {
+    console.error("Error fetching online users:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 

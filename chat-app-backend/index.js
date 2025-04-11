@@ -10,12 +10,18 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "http://localhost:4200",
+    credentials: true,
   },
 });
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:4200",
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use("/api/users", userRoutes);
 
@@ -24,31 +30,33 @@ io.on("connection", (socket) => {
   console.log("A user connected");
 
   socket.on("userConnected", async (user) => {
-    console.log(`User connected: ${user.userName} with ID: ${user.userId}`);
+    console.log("📥 Received user data:", user); // ✅ Log this
+
+    if (!user.userId || !user.userName || !user.email || !user.password) {
+      console.error("❌ Missing required fields:", user);
+      return;
+    }
 
     try {
-      // Check if user already exists in the database
       let existingUser = await User.findOne({ userId: user.userId });
 
       if (!existingUser) {
-        // If user doesn't exist, save them in DB
         const newUser = new User({
           userId: user.userId,
           username: user.userName,
           email: user.email,
-          password: user.password, // 🔴 NOTE: This should be hashed before saving in a real app
-          socketId: socket.id, // Save socket ID for tracking
+          password: user.password,
+          socketId: socket.id,
+          isOnline: true,
         });
 
         await newUser.save();
         console.log(`✅ User ${user.userName} saved to database`);
       } else {
-        // If user exists, update their socketId
         existingUser.socketId = socket.id;
+        existingUser.isOnline = true; // ✅ Mark as online
         await existingUser.save();
-        console.log(
-          `🔄 User ${user.userName} already exists, updated socketId`
-        );
+        console.log(`🔄 User ${user.userName} updated socketId`);
       }
     } catch (error) {
       console.error("❌ Error saving user to database:", error);
@@ -74,8 +82,14 @@ io.on("connection", (socket) => {
     console.log("User disconnected");
 
     try {
-      await User.findOneAndUpdate({ socketId: socket.id }, { socketId: null });
-      console.log("🔄 User socket ID removed on disconnect");
+      const user = await User.findOne({ socketId: socket.id });
+
+      if (user) {
+        user.socketId = null;
+        user.isOnline = false; // ✅ Mark as offline
+        await user.save();
+        console.log(`🔄 User ${user.username} marked offline`);
+      }
     } catch (error) {
       console.error("❌ Error updating user on disconnect:", error);
     }
@@ -89,7 +103,9 @@ app.use((err, req, res, next) => {
 });
 
 // Connect to MongoDB and start the server
-connectDB().then(() => {
+// Clear all users on server start
+connectDB().then(async () => {
+  await User.updateMany({}, { isOnline: false }); // reset all
   const PORT = process.env.PORT || 5000;
   server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });

@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema({
     default: null, // Store socket ID when user is online
   },
   profileImage: { type: String, default: "" },
+  isOnline: { type: Boolean, default: false },
 });
 
 const User = mongoose.model("User", userSchema);
