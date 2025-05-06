@@ -15,11 +15,17 @@ import { ImportsModule } from '../imports';
 import { PickerComponent } from '@ctrl/ngx-emoji-mart';
 import { AuthService } from '../../auth.service';
 import { SidenavComponent } from '../sidenav/sidenav.component';
+import { ChatHeaderComponent } from '../chat-header/chat-header.component';
 
 @Component({
   selector: 'app-chat',
   // Removed invalid 'imports' property
-  imports: [ImportsModule, PickerComponent, SidenavComponent],
+  imports: [
+    ImportsModule,
+    PickerComponent,
+    SidenavComponent,
+    ChatHeaderComponent,
+  ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
 })
@@ -39,6 +45,10 @@ export class ChatComponent implements OnInit {
   isDarkMode = false; // Dark mode support
   user: any;
   isSending = false;
+  selectedUser = {
+    username: 'Global',
+    profileImage: 'assets/global-icon.png', // or any placeholder
+  };
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -148,6 +158,10 @@ export class ChatComponent implements OnInit {
   //     this.showEmojiPicker = false;
   //   }
   // }
+
+  onNavItemSelected(user: any) {
+    this.selectedUser = user;
+  }
 
   private promptForUserName(): void {
     const storedUserName = localStorage.getItem('userName');

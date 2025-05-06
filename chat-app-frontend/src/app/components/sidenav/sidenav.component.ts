@@ -1,8 +1,10 @@
 import {
   Component,
   ElementRef,
+  EventEmitter,
   HostListener,
   OnInit,
+  Output,
   ViewChild,
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -21,11 +23,17 @@ import { MessageService } from 'primeng/api';
 })
 export class SidenavComponent implements OnInit {
   @ViewChild('dropdownContainer') dropdownContainer!: ElementRef;
+  @Output() navItemSelected = new EventEmitter<any>();
   isExpanded: boolean = false;
   currentUser: any;
   onlineUsers: any[] = [];
   private socket!: Socket;
   showDropdown = false;
+  selectedItem: string = 'global';
+  selectedUser = {
+    username: 'Global',
+    profileImage: 'assets/global-icon.png', // or any placeholder
+  };
 
   constructor(
     private authService: AuthService,
@@ -91,6 +99,19 @@ export class SidenavComponent implements OnInit {
         this.showDropdown = false;
       }
     }, 0);
+  }
+
+  selectItem(item: string, user?: any) {
+    if (item === 'global') {
+      this.selectedItem = 'global';
+      this.navItemSelected.emit({
+        username: 'Global',
+        profileImage: 'assets/global-icon.png',
+      });
+    } else if (item === 'user' && user?.username) {
+      this.selectedItem = user.username; // ✅ Fix here
+      this.navItemSelected.emit(user);
+    }
   }
 
   logout() {

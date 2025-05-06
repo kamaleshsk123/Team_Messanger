@@ -11,7 +11,7 @@
       class="text-white focus:outline-none group"
     >
       <svg
-        class="w-10 h-10 p-2 bg-sky-400 rounded-full transition-transform duration-300 group-hover:rotate-180"
+        class="w-10 h-10 p-2 bg-sky-600 rounded-full transition-transform duration-300 group-hover:rotate-180"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -46,7 +46,12 @@
     <div
       *ngFor="let user of onlineUsers"
       class="flex items-center mb-3 p-2 space-x-3 rounded-md transition-all duration-200 hover:bg-gray-800"
-      [ngClass]="{ 'justify-center': !isExpanded, 'justify-start': isExpanded }"
+      [ngClass]="{
+        'justify-center': !isExpanded,
+        'justify-start': isExpanded,
+        'bg-sky-600': selectedItem === user.username
+      }"
+      (click)="selectItem('user', user)"
     >
       <!-- User Avatar -->
       <div class="relative">
@@ -66,6 +71,20 @@
         {{ user.username }}
       </span>
     </div>
+  </div>
+
+  <!-- Global Icon -->
+  <div
+    class="flex items-center mx-1 my-2 px-4 py-3 space-x-3 cursor-pointer rounded-md transition"
+    [ngClass]="{
+      'bg-sky-600': selectedItem === 'global',
+      'justify-center': !isExpanded,
+      'justify-start': isExpanded
+    }"
+    (click)="selectItem('global')"
+  >
+    <mat-icon class="text-white">language</mat-icon>
+    <span *ngIf="isExpanded" class="text-sm font-medium">Global </span>
   </div>
 
   <!-- Current User Profile -->

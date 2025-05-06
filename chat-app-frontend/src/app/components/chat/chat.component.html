@@ -1,11 +1,15 @@
 <div class="flex h-screen bg-gray-100">
   <!-- Sidebar (SideNavComponent) -->
-  <app-sidenav class="h-full"></app-sidenav>
+  <app-sidenav
+    (navItemSelected)="onNavItemSelected($event)"
+    class="h-full"
+  ></app-sidenav>
 
   <!-- Main Chat Container -->
   <div
     class="flex flex-col flex-grow border border-gray-300 bg-gradient-to-b from-gray-100 to-white shadow-lg"
   >
+    <app-chat-header [user]="selectedUser"></app-chat-header>
     <!-- Messages Container (Reverse Order) -->
     <div
       #chatContainer
